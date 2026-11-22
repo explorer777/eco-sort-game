@@ -1,59 +1,186 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="uk">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | EcoSortGame</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=540 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">EcoSortGame</div>
-      </div>
-    </div>
-    <script>
-      var canvas = document.querySelector("#unity-canvas");
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Врятуй Землю! | EcoSortGame</title>
+    <!-- Іконка вбудована, щоб не завантажувати окремий файл -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%2349b6e8'/><path d='M22 40q14-24 34-14t-4 26-18 24-12-36zM62 56q18-8 22 4t-14 20-8-24z' fill='%2355b447'/></svg>">
+    <style>
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+      /* ---------- Гра: 16:9 по центру, чорний фон, без скролу ---------- */
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+      #unity-container {
+        position: fixed !important; inset: 0;
+        width: 100% !important; height: 100% !important;
+        transform: none !important;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #unity-canvas {
+        display: block; outline: none; background: #000;
+        width: min(100vw, 177.78vh) !important;
+        height: min(100vh, 56.25vw) !important;
+      }
+      /* На телефонах vh не враховує адресний рядок, тому, де можна, беремо dvh */
+      @supports (height: 100dvh) {
+        #unity-canvas {
+          width: min(100vw, 177.78dvh) !important;
+          height: min(100dvh, 56.25vw) !important;
         }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
       }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/123.loader.js";
-      var config = {
+      /* ---------- Листівка ---------- */
+      #landing, #loading {
+        position: fixed; inset: 0; height: 100vh; height: 100dvh;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden; transition: opacity .6s ease;
+      }
+      #landing {
+        z-index: 20;
+        background: linear-gradient(180deg, #58b9ee 0%, #a9dff5 38%, #e4f6df 62%, #93d06f 82%, #4fa044 100%);
+      }
+      #loading { z-index: 10; }
+      .fade { opacity: 0; pointer-events: none; }
+
+      .sun {
+        position: absolute; top: 7%; right: 9%;
+        width: clamp(64px, 15vmin, 170px); aspect-ratio: 1; border-radius: 50%;
+        background: radial-gradient(circle, #fff6c4 0 25%, #ffd84d 70%);
+        animation: glow 5s ease-in-out infinite alternate;
+      }
+      .cloud {
+        position: absolute; width: clamp(90px, 20vmin, 230px); aspect-ratio: 3.4;
+        border-radius: 999px; background: #fff; opacity: .85;
+        animation: drift 16s ease-in-out infinite alternate;
+      }
+      .cloud::before, .cloud::after { content: ""; position: absolute; border-radius: 50%; background: inherit; aspect-ratio: 1; }
+      .cloud::before { width: 42%; left: 16%; bottom: 25%; }
+      .cloud::after  { width: 54%; right: 14%; bottom: 20%; }
+      .cloud.a { top: 15%; left: 7%; }
+      .cloud.b { top: 31%; right: 5%; scale: .75; animation-duration: 22s; }
+      .cloud.c { top: 8%; left: 46%; scale: .55; animation-duration: 19s; }
+      .hill { position: absolute; width: 90%; height: 34%; border-radius: 50%; }
+      .hill.l { left: -24%; bottom: -15%; background: #68b650; }
+      .hill.r { right: -26%; bottom: -17%; background: #459640; }
+      .leaf {
+        position: absolute; top: -8%; width: clamp(12px, 2.6vmin, 26px); aspect-ratio: 1;
+        border-radius: 0 100% 0 100%; background: linear-gradient(135deg, #8fd14f, #3f9a3b);
+        animation: fall 13s linear infinite;
+      }
+      .leaf:nth-of-type(odd) { animation-duration: 17s; }
+
+      .card {
+        position: relative;
+        width: min(90vw, max(620px, 72vmin)); max-height: 94vh; max-height: 94dvh;
+        padding: clamp(16px, 5vmin, 80px) clamp(18px, 5vmin, 80px);
+        border-radius: 28px; text-align: center;
+        background: rgba(255, 255, 255, .8);
+        box-shadow: 0 14px 44px rgba(24, 74, 40, .22);
+        animation: appear .8s cubic-bezier(.2, .8, .3, 1) both;
+      }
+      .card h1 { margin: 0; font-size: clamp(1.8rem, 9vmin, 7rem); line-height: 1.1; font-weight: 800; color: #1f6b35; }
+      .card .sub { margin: clamp(6px, 2vmin, 16px) 0 clamp(14px, 4.5vmin, 38px); font-size: clamp(.95rem, 3.2vmin, 2.4rem); color: #2d4f38; }
+      .card .author { margin: clamp(12px, 4vmin, 32px) 0 0; font-size: clamp(.75rem, 2vmin, 1.5rem); color: #3f5c48; }
+      .btn {
+        border: 0; border-radius: 999px; cursor: pointer;
+        padding: .55em 1.7em; font: inherit; font-weight: 800;
+        font-size: clamp(1.25rem, 5vmin, 3.6rem);
+        color: #fff; background: linear-gradient(180deg, #f9862b, #dd5a08);
+        box-shadow: 0 6px 18px rgba(200, 80, 0, .4);
+        transition: transform .15s, filter .15s;
+      }
+      .btn:hover { transform: translateY(-2px) scale(1.03); filter: brightness(1.06); }
+      .btn:active { transform: scale(.97); }
+      .btn:focus-visible, #fs-btn:focus-visible { outline: 3px solid #1f6b35; outline-offset: 3px; }
+
+      /* ---------- Екран завантаження ---------- */
+      #loading { flex-direction: column; gap: 18px; padding: 24px; color: #fff; background: #12351f; text-align: center; }
+      #loading-text { margin: 0; font-size: clamp(1rem, 3.4vmin, 1.5rem); }
+      #bar { width: min(80vw, 460px); height: 18px; border-radius: 999px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+      #bar-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8fd14f, #f9a13b); transition: width .2s; }
+
+      /* ---------- Кнопка повного екрана і повідомлення Unity ---------- */
+      #fs-btn {
+        position: fixed; z-index: 5;
+        right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom));
+        width: 40px; height: 40px; padding: 0; border: 0; border-radius: 10px; cursor: pointer;
+        font-size: 22px; line-height: 1; color: #fff; background: rgba(0, 0, 0, .45); opacity: .55;
+      }
+      #fs-btn:hover { opacity: 1; }
+      #banner { position: fixed; z-index: 30; top: 12px; left: 50%; transform: translateX(-50%); max-width: 90vw; }
+      #banner div { margin-bottom: 6px; padding: 10px 14px; border-radius: 10px; background: #fff; color: #222; white-space: pre-line; }
+      #banner .warning { background: #ffe27a; }
+      #banner .error { background: #b3261e; color: #fff; }
+
+      @keyframes appear { from { opacity: 0; transform: translateY(26px) scale(.96); } }
+      @keyframes glow { from { box-shadow: 0 0 30px 6px rgba(255, 220, 90, .5); } to { box-shadow: 0 0 70px 24px rgba(255, 220, 90, .75); } }
+      @keyframes drift { to { transform: translateX(6vw); } }
+      @keyframes fall { to { transform: translate(8vw, 118vh) rotate(540deg); } }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Гра -->
+    <div id="unity-container">
+      <canvas id="unity-canvas" width=960 height=540 tabindex="-1"></canvas>
+    </div>
+    <button id="fs-btn" type="button" title="Повний екран" aria-label="Повний екран" hidden>⛶</button>
+
+    <!-- Екран завантаження -->
+    <div id="loading" hidden>
+      <p id="loading-text" role="status">Завантаження гри…</p>
+      <div id="bar" role="progressbar" aria-label="Завантаження гри" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="bar-fill"></div>
+      </div>
+      <button id="retry-btn" class="btn" type="button" hidden>Спробувати ще раз</button>
+    </div>
+
+    <!-- Листівка -->
+    <div id="landing">
+      <div aria-hidden="true">
+        <div class="sun"></div>
+        <div class="cloud a"></div><div class="cloud b"></div><div class="cloud c"></div>
+        <div class="hill l"></div><div class="hill r"></div>
+        <div class="leaf" style="left:8%"></div>
+        <div class="leaf" style="left:27%;animation-delay:-6s"></div>
+        <div class="leaf" style="left:52%;animation-delay:-10s"></div>
+        <div class="leaf" style="left:71%;animation-delay:-3s"></div>
+        <div class="leaf" style="left:88%;animation-delay:-8s"></div>
+      </div>
+      <main class="card">
+        <h1>Врятуй Землю!</h1>
+        <p class="sub">Еко-гра про сортування сміття</p>
+        <button id="start-btn" class="btn" type="button">Почати</button>
+        <p class="author">Автор: Ігор · Екософт-2027</p>
+      </main>
+    </div>
+
+    <div id="banner"></div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const canvas = $("unity-canvas");
+      const root = document.documentElement;
+      let gameRunning = false;
+
+      // Повідомлення Unity: помилки лишаються, решта зникає за 5 секунд
+      function unityShowBanner(msg, type) {
+        const div = document.createElement("div");
+        div.className = type || "";
+        div.textContent = msg;
+        $("banner").appendChild(div);
+        if (type !== "error") setTimeout(() => div.remove(), 5000);
+      }
+
+      // Назви файлів збірки підставляє Unity
+      const buildUrl = "Build";
+      const loaderUrl = buildUrl + "/123.loader.js";
+      const config = {
         arguments: [],
         dataUrl: buildUrl + "/123.data",
         frameworkUrl: buildUrl + "/123.framework.js",
@@ -63,71 +190,72 @@
         productName: "EcoSortGame",
         productVersion: "1.0",
         showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+      // ---------- Повний екран ----------
+      const isFullscreen = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const requestFs = root.requestFullscreen || root.webkitRequestFullscreen; // на iPhone немає
 
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "960px";
-        canvas.style.height = "540px";
+      function enterFullscreen() {
+        if (!requestFs || isFullscreen()) return;
+        try {
+          const result = requestFs.call(root);
+          if (result && result.catch) result.catch(() => {}); // відмова браузера: граємо у вікні
+        } catch (e) { /* граємо у вікні */ }
       }
 
-      document.querySelector("#unity-loading-bar").style.display = "block";
+      // Кнопка «⛶» видима лише тоді, коли гра запущена у вікні
+      function updateFsButton() {
+        $("fs-btn").hidden = !gameRunning || !requestFs || isFullscreen();
+      }
+      document.addEventListener("fullscreenchange", updateFsButton);
+      document.addEventListener("webkitfullscreenchange", updateFsButton);
+      $("fs-btn").addEventListener("click", () => { enterFullscreen(); canvas.focus(); });
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
+      // ---------- Завантаження гри ----------
+      function setProgress(p) {
+        const percent = Math.round(p * 100);
+        $("bar-fill").style.width = percent + "%";
+        $("bar").setAttribute("aria-valuenow", percent);
+        $("loading-text").textContent = "Завантаження гри… " + percent + "%";
+      }
 
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+      function showLoadError(err) {
+        console.error(err);
+        $("loading-text").textContent = "Не вдалося завантажити гру. Перевірте інтернет і спробуйте ще раз.";
+        $("bar").hidden = true;
+        $("retry-btn").hidden = false;
+      }
+      $("retry-btn").addEventListener("click", () => location.reload());
 
-      document.body.appendChild(script);
+      function loadGame() {
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onerror = () => showLoadError("Не знайдено " + loaderUrl);
+        script.onload = () => {
+          createUnityInstance(canvas, config, setProgress).then(() => {
+            gameRunning = true;
+            hideScreen($("loading"));
+            updateFsButton();
+            canvas.focus();
+          }).catch(showLoadError);
+        };
+        document.body.appendChild(script);
+      }
 
+      // Плавно ховає екран, потім прибирає його зі сторінки
+      function hideScreen(el) {
+        el.classList.add("fade");
+        setTimeout(() => { el.hidden = true; }, 650);
+      }
+
+      // ---------- Кнопка «Почати» ----------
+      $("start-btn").addEventListener("click", () => {
+        enterFullscreen();            // першим, поки діє жест користувача
+        $("loading").hidden = false;
+        hideScreen($("landing"));
+        loadGame();
+      }, { once: true });
     </script>
   </body>
 </html>
