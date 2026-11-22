@@ -40,11 +40,9 @@
       }
       #landing {
         z-index: 20; background: #6ccaff;
-        /* --u: розмір одиниці сцени (як у slice); --c: одиниця картки, не ширшої за 92% екрана */
-        --u: max(100vw / 1920, 100vh / 1080);
-        --c: min(92vw / 886, var(--u));
+        --u: min(1vw, 1.78vh); /* 1% ширини вікна 16:9 */
       }
-      @supports (height: 100dvh) { #landing { --u: max(100vw / 1920, 100dvh / 1080); } }
+      @supports (height: 100dvh) { #landing { --u: min(1vw, 1.78dvh); } }
       #loading { z-index: 10; }
       .fade { opacity: 0; pointer-events: none; }
 
@@ -55,34 +53,36 @@
       .smoke { animation: smoke-a 10s linear infinite; }
       .smoke.two { animation: smoke-b 6.8s linear infinite; }
 
-      /* Розміри картки взято з макета (одиниці сцени) */
       .card {
-        position: relative; top: calc(47 * var(--u)); flex: none;
-        width: calc(886 * var(--c)); min-height: calc(480 * var(--c));
-        padding: calc(16 * var(--c)) calc(30 * var(--c)) calc(42 * var(--c));
+        --line: clamp(3px, calc(var(--u) * .24), 5px);
+        position: relative; flex: none;
+        width: clamp(280px, calc(var(--u) * 36), 760px);
+        padding: clamp(14px, calc(var(--u) * 1.9), 42px) clamp(14px, calc(var(--u) * 2), 44px) clamp(18px, calc(var(--u) * 2.3), 50px);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         text-align: center; background: #fff;
-        border: max(3px, calc(6 * var(--c))) solid #2b2b2b; border-radius: calc(49 * var(--c));
-        box-shadow: 0 calc(16 * var(--c)) calc(30 * var(--c)) rgba(27, 27, 27, .32);
+        border: var(--line) solid #2b2b2b; border-radius: clamp(18px, calc(var(--u) * 1.9), 40px);
+        box-shadow: 0 clamp(5px, calc(var(--u) * .65), 14px) clamp(10px, calc(var(--u) * 1.2), 26px) rgba(27, 27, 27, .32);
         font-family: "Segoe UI", system-ui, sans-serif;
         animation: appear .8s cubic-bezier(.2, .8, .3, 1) both;
       }
       .card h1 {
         margin: 0; line-height: 1.15; font-weight: 700; color: #2f9e2f; white-space: nowrap;
-        font-size: clamp(26px, calc(99 * var(--c)), 400px);
-        -webkit-text-stroke: calc(2 * var(--c)) #1d5f1d;
+        font-size: clamp(26px, calc(var(--u) * 3.4), 72px);
+        -webkit-text-stroke: clamp(.5px, calc(var(--u) * .07), 1.5px) #1d5f1d;
       }
       .card .sub {
-        margin: calc(8 * var(--c)) 0 calc(40 * var(--c)); color: #3d5a40;
-        font-size: clamp(14px, calc(39.5 * var(--c)), 160px);
+        margin: clamp(2px, calc(var(--u) * .25), 6px) 0 clamp(12px, calc(var(--u) * 1.4), 30px); color: #3d5a40;
+        font-size: clamp(14px, calc(var(--u) * 1.35), 30px);
       }
       #start-btn {
-        position: relative; cursor: pointer; padding: 0 0 calc(4 * var(--c));
-        width: calc(494 * var(--c)); height: calc(130 * var(--c)); min-height: 48px;
-        border: max(3px, calc(6 * var(--c))) solid #2b2b2b; border-radius: 999px;
-        font: inherit; font-weight: 700; font-size: clamp(22px, calc(66 * var(--c)), 280px); line-height: 1;
+        --w: clamp(180px, calc(var(--u) * 17), 340px);
+        --drop: clamp(4px, calc(var(--u) * .36), 8px);
+        position: relative; cursor: pointer; padding: 0 0 .06em; margin-bottom: var(--drop);
+        width: var(--w); height: calc(var(--w) * .26);
+        border: var(--line) solid #2b2b2b; border-radius: 999px;
+        font: inherit; font-weight: 700; font-size: clamp(20px, calc(var(--u) * 2.6), 52px); line-height: 1;
         color: #1b5e20; background: linear-gradient(180deg, #ffd27a 0%, #ffb02e 45%, #f58a0a 100%) border-box;
-        box-shadow: 0 calc(10 * var(--c)) 0 calc(-6 * var(--c)) #c8700a, 0 calc(10 * var(--c)) 0 0 #2b2b2b;
+        box-shadow: 0 var(--drop) 0 calc(var(--line) * -1) #c8700a, 0 var(--drop) 0 0 #2b2b2b;
         transition: transform .15s, filter .15s;
       }
       #start-btn::before {
@@ -90,7 +90,7 @@
         border-radius: 999px; background: #fff; opacity: .75;
       }
       #start-btn:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.05); }
-      #start-btn:active { transform: translateY(calc(6 * var(--c))); }
+      #start-btn:active { transform: translateY(calc(var(--drop) * .6)); }
       #start-btn:focus-visible { outline: 3px solid #1f6b35; outline-offset: 12px; }
       .btn {
         border: 0; border-radius: 999px; cursor: pointer;
@@ -168,12 +168,12 @@
     <!-- Листівка -->
     <div id="landing">
       <!-- Нерухома сцена: ліворуч чиста природа, праворуч забруднений світ -->
-      <svg class="scene" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <svg class="scene" viewBox="-480 0 2880 1080" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <defs>
           <linearGradient id="skyL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6ccaff"/><stop offset="0.7" stop-color="#cdeeff"/><stop offset="1" stop-color="#e8f8ff"/></linearGradient>
           <linearGradient id="skyR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4640"/><stop offset="0.6" stop-color="#8a8070"/><stop offset="1" stop-color="#b3a68a"/></linearGradient>
-          <clipPath id="clipL"><path d="M0 0 L960 0 C900 120 1020 200 950 320 C890 440 1030 520 960 640 C900 760 1020 880 955 1080 L0 1080 Z"/></clipPath>
-          <clipPath id="clipR"><path d="M960 0 L1920 0 L1920 1080 L955 1080 C1020 880 900 760 960 640 C1030 520 890 440 950 320 C1020 200 900 120 960 0 Z"/></clipPath>
+          <clipPath id="clipL"><path d="M-480 0 L960 0 C900 120 1020 200 950 320 C890 440 1030 520 960 640 C900 760 1020 880 955 1080 L-480 1080 Z"/></clipPath>
+          <clipPath id="clipR"><path d="M960 0 L2400 0 L2400 1080 L955 1080 C1020 880 900 760 960 640 C1030 520 890 440 950 320 C1020 200 900 120 960 0 Z"/></clipPath>
 
           <g id="cloud"><path d="M30 120 C0 120 0 78 34 76 C32 36 84 22 106 52 C122 14 190 20 196 68 C236 62 252 120 212 120 Z" fill="#fff" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/></g>
           <g id="smog"><path d="M30 120 C0 120 0 78 34 76 C32 36 84 22 106 52 C122 14 190 20 196 68 C236 62 252 120 212 120 Z" fill="#5d5a57" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/></g>
@@ -196,10 +196,10 @@
         </defs>
         <!-- LEFT: clean nature -->
         <g clip-path="url(#clipL)">
-          <rect width="1920" height="1080" fill="url(#skyL)"/>
-          <path d="M0 800 C260 720 520 730 800 790 C1060 845 1260 760 1520 735 L1920 760 L1920 1080 L0 1080 Z" fill="#a8e07a" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M0 880 C300 830 600 850 900 900 C1200 950 1500 870 1920 850 L1920 1080 L0 1080 Z" fill="#69c94a" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M0 985 C380 945 820 975 1200 1000 C1500 1018 1740 985 1920 965 L1920 1080 L0 1080 Z" fill="#4caf3a" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <rect x="-480" width="2880" height="1080" fill="url(#skyL)"/>
+          <path d="M-500 870 C-330 870 -130 840 0 800 C260 720 520 730 800 790 C1060 845 1260 760 1520 735 L1920 760 L1920 1080 L-500 1080 Z" fill="#a8e07a" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M-500 925 C-340 925 -150 905 0 880 C300 830 600 850 900 900 C1200 950 1500 870 1920 850 L1920 1080 L-500 1080 Z" fill="#69c94a" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M-500 1020 C-320 1016 -150 1001 0 985 C380 945 820 975 1200 1000 C1500 1018 1740 985 1920 965 L1920 1080 L-500 1080 Z" fill="#4caf3a" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
           <!-- дерево: контур крони, стовбур (верх усередині крони), заливка крони -->
           <g stroke="#2b2b2b" stroke-width="5"><circle cx="110" cy="575" r="62" fill="#3ea838"/><circle cx="62" cy="622" r="48" fill="#3ea838"/><circle cx="160" cy="620" r="50" fill="#3ea838"/><circle cx="110" cy="650" r="44" fill="#3ea838"/></g>
           <path d="M96 790 L100 640 L120 640 L124 790 Z" fill="#b5703f" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
@@ -210,16 +210,40 @@
           <path d="M356 800 L360 660 L378 660 L382 800 Z" fill="#b5703f" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
           <g fill="#46b53f"><circle cx="368" cy="640" r="50"/><circle cx="326" cy="670" r="36"/><circle cx="410" cy="670" r="36"/><circle cx="368" cy="672" r="36"/></g>
           <g fill="#ee4b3d" stroke="#2b2b2b" stroke-width="3.5"><circle cx="350" cy="634" r="9"/><circle cx="392" cy="652" r="9"/><circle cx="330" cy="676" r="9"/><circle cx="378" cy="618" r="8"/></g>
+          <!-- додаткові дерева на широких екранах -->
+          <g transform="translate(-460 108)">
+          <g stroke="#2b2b2b" stroke-width="5"><circle cx="110" cy="575" r="62" fill="#3ea838"/><circle cx="62" cy="622" r="48" fill="#3ea838"/><circle cx="160" cy="620" r="50" fill="#3ea838"/><circle cx="110" cy="650" r="44" fill="#3ea838"/></g>
+          <path d="M96 790 L100 640 L120 640 L124 790 Z" fill="#b5703f" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <g fill="#3ea838"><circle cx="110" cy="575" r="60"/><circle cx="62" cy="622" r="46"/><circle cx="160" cy="620" r="48"/><circle cx="110" cy="650" r="42"/></g>
+          <circle cx="88" cy="552" r="16" fill="#66d65a"/><circle cx="150" cy="606" r="11" fill="#66d65a"/>
+          </g>
+          <g transform="translate(-500 74)">
+          <g stroke="#2b2b2b" stroke-width="5"><circle cx="368" cy="640" r="52" fill="#46b53f"/><circle cx="326" cy="670" r="38" fill="#46b53f"/><circle cx="410" cy="670" r="38" fill="#46b53f"/><circle cx="368" cy="672" r="38" fill="#46b53f"/></g>
+          <path d="M356 800 L360 660 L378 660 L382 800 Z" fill="#b5703f" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <g fill="#46b53f"><circle cx="368" cy="640" r="50"/><circle cx="326" cy="670" r="36"/><circle cx="410" cy="670" r="36"/><circle cx="368" cy="672" r="36"/></g>
+          <g fill="#ee4b3d" stroke="#2b2b2b" stroke-width="3.5"><circle cx="350" cy="634" r="9"/><circle cx="392" cy="652" r="9"/><circle cx="330" cy="676" r="9"/><circle cx="378" cy="618" r="8"/></g>
+          </g>
+          <!-- додаткові квіти й трава ліворуч -->
+          <use href="#tuft" transform="translate(-430 985)"/>
+          <use href="#tuft" transform="translate(-200 965)"/>
+          <use href="#tuft" transform="translate(-330 1060)"/>
+          <use href="#tuft" transform="translate(-60 935)"/>
+          <use href="#flower" transform="translate(-380 975)"/>
+          <use href="#flowerPink" transform="translate(-270 1005)"/>
+          <use href="#flower" transform="translate(-100 965)"/>
+          <use href="#flowerPink" transform="translate(-450 1030)"/>
+          <use href="#flower" transform="translate(-190 1020)"/>
+          <use href="#flowerPink" transform="translate(-45 1015)"/>
           <use href="#tuft" transform="translate(230 860)"/><use href="#tuft" transform="translate(560 905)"/><use href="#tuft" transform="translate(150 1030)"/><use href="#tuft" transform="translate(820 1040)"/>
           <use href="#flower" transform="translate(200 905)"/><use href="#flowerPink" transform="translate(460 940)"/><use href="#flower" transform="translate(700 985)"/><use href="#flowerPink" transform="translate(300 1010)"/><use href="#flower" transform="translate(880 930)"/>
         </g>
         <!-- RIGHT: polluted -->
         <g clip-path="url(#clipR)">
-          <rect width="1920" height="1080" fill="url(#skyR)"/>
+          <rect x="-480" width="2880" height="1080" fill="url(#skyR)"/>
           <use href="#smog" transform="translate(1040 70) scale(1.2)"/>
           <use href="#smog" transform="translate(1420 30) scale(0.9)"/>
           <use href="#smog" transform="translate(1640 170) scale(1.3)"/>
-          <path d="M0 780 C260 730 520 740 800 790 C1060 840 1260 770 1520 750 L1920 770 L1920 1080 L0 1080 Z" fill="#9a8860" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M0 780 C260 730 520 740 800 790 C1060 840 1260 770 1520 750 L1920 770 C2080 778 2250 802 2420 790 L2420 1080 L0 1080 Z" fill="#9a8860" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
           <!-- factory -->
           <g stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round">
             <rect x="1610" y="470" width="44" height="270" fill="#8a5a46"/><rect x="1610" y="500" width="44" height="22" fill="#d8d2c4"/><rect x="1610" y="548" width="44" height="22" fill="#d8d2c4"/>
@@ -248,8 +272,8 @@
             <path d="M1519 704 C1470 690 1450 670 1436 640" stroke="#5b4636" stroke-width="12"/>
             <path d="M1519 696 C1560 680 1585 660 1600 630" stroke="#5b4636" stroke-width="12"/>
           </g>
-          <path d="M0 880 C300 840 600 860 900 905 C1200 950 1500 880 1920 860 L1920 1080 L0 1080 Z" fill="#7d6c4c" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M0 985 C380 950 820 980 1200 1004 C1500 1020 1740 990 1920 970 L1920 1080 L0 1080 Z" fill="#5e5038" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M0 880 C300 840 600 860 900 905 C1200 950 1500 880 1920 860 C2080 852 2260 872 2420 862 L2420 1080 L0 1080 Z" fill="#7d6c4c" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M0 985 C380 950 820 980 1200 1004 C1500 1020 1740 990 1920 970 C2060 954 2250 960 2420 976 L2420 1080 L0 1080 Z" fill="#5e5038" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
           <!-- junk -->
           <use href="#tires" transform="translate(1040 1040)"/>
           <use href="#box" transform="translate(1150 985) rotate(-4)"/>
@@ -266,10 +290,22 @@
           <use href="#paper" transform="translate(1000 960)"/><use href="#paper" transform="translate(1300 930) scale(0.9)"/>
           <use href="#paper" transform="translate(1600 960) scale(1.1)"/><use href="#paper" transform="translate(1880 960)"/>
           <use href="#paper" transform="translate(1180 1075) scale(0.9)"/>
+          <!-- додаткове сміття праворуч -->
+          <use href="#box" transform="translate(2225 985) rotate(-5)"/>
+          <use href="#barrel" transform="translate(2020 985)"/>
+          <use href="#tires" transform="translate(2100 1050)"/>
+          <use href="#tire" transform="translate(2260 1045)"/>
+          <use href="#box" transform="translate(2360 1055) scale(0.9) rotate(6)"/>
+          <use href="#bottle" transform="translate(1935 1060) rotate(35) scale(0.9)"/>
+          <use href="#can" transform="translate(2025 1060) rotate(-30)"/>
+          <use href="#can" transform="translate(2310 960) rotate(35)"/>
+          <use href="#paper" transform="translate(2095 945)"/>
+          <use href="#paper" transform="translate(2355 985)"/>
+          <use href="#paper" transform="translate(2180 1070) scale(0.9)"/>
         </g>
       </svg>
       <!-- Рухомий шар: хмари, листочки, дим і межа між половинами -->
-      <svg class="scene" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <svg class="scene" viewBox="-480 0 2880 1080" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <g clip-path="url(#clipL)">
           <g class="cloud"><use href="#cloud" transform="translate(90 90) scale(1.35)"/></g>
           <g class="cloud slow"><use href="#cloud" transform="translate(560 40) scale(0.85)"/></g>
@@ -314,12 +350,12 @@
 
       // Назви файлів збірки підставляє Unity
       const buildUrl = "Build";
-      const loaderUrl = buildUrl + "/234.loader.js";
+      const loaderUrl = buildUrl + "/123.loader.js";
       const config = {
         arguments: [],
-        dataUrl: buildUrl + "/234.data",
-        frameworkUrl: buildUrl + "/234.framework.js",
-        codeUrl: buildUrl + "/234.wasm",
+        dataUrl: buildUrl + "/123.data",
+        frameworkUrl: buildUrl + "/123.framework.js",
+        codeUrl: buildUrl + "/123.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "EcoSortGame",
